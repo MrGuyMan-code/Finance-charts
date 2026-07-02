@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import yfinance as yf
+import pandas as pd
 
 
 def get_yahoo_closes(symbol="BTC-USD", days=365):
@@ -43,6 +44,8 @@ def get_yahoo_closes(symbol="BTC-USD", days=365):
 
     close_series = df["Close"]
 
+    if isinstance(close_series, pd.DataFrame):
+        close_series = close_series.iloc[:, 0]
 
     return [
         (idx.to_pydatetime(), float(close))
@@ -56,7 +59,7 @@ def get_steps_rounded_coordinates (input_data, step):
     normalised_data = [(element[0], floor_in_steps(element[1], step)) for element in input_data]
     return normalised_data
 
-def get_kagi_coordinates (input_data):
+def get_kagi_coordinates_error (input_data):
     # data has item this structure
     # datetime.datetime(2021, 1, 8, 0, 0), 40797.609375
     consecutive = 0
@@ -103,6 +106,39 @@ def get_kagi_coordinates (input_data):
 
     return data_to_return
 
+def get_kagi_coordinates(input_data):
+
+    to_be_deleted_indexes = []
+
+    data_to_return = input_data[:]
+
+    if len(input_data) < 2:
+        return data_to_return
+
+    for i in range(1, len(data_to_return)):
+        if data_to_return[i-1][1] == data_to_return[i][1]:
+            to_be_deleted_indexes.append(i)
+
+    for i in range(len(to_be_deleted_indexes) - 1, -1, -1):
+        del data_to_return[to_be_deleted_indexes[i]]
+
+    
+    to_be_deleted_indexes = []
+
+    for i in range(1, len(data_to_return)-1):
+        if data_to_return[i - 1][1] > data_to_return[i][1] > data_to_return[i + 1][1]:
+
+            to_be_deleted_indexes.append(i)
+
+        elif data_to_return[i - 1][1] < data_to_return[i][1] < data_to_return[i + 1][1]:
+
+            to_be_deleted_indexes.append(i)
+    
+
+    for i in range(len(to_be_deleted_indexes) - 1, -1, -1):
+        del data_to_return[to_be_deleted_indexes[i]]
+    
+    return data_to_return
 
 def run_test(name, values):
     data = [(None, v) for v in values]
@@ -173,7 +209,14 @@ btc_data = get_yahoo_closes("BTC-USD", 2000)
 
 normalised_data = get_steps_rounded_coordinates (btc_data, 1000)
 
-run_all_tests()
+k_ch = get_kagi_coordinates(normalised_data)
+for elem in k_ch:
+    print (elem[1], end =", ")
+print()
+
+#run_all_tests()
+for elem in normalised_data:
+    print (elem[1], end =", ")
 
 print("First:", btc_data[0])
 print("Last :", btc_data[-1])

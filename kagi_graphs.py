@@ -2,46 +2,38 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+from chart_engine.data_scraping.data import YahooData
+from chart_engine.charts.kagi import Kagi
 
 # ============================================================
-# SAMPLE DATA
+# REAL DATA PIPELINE
 # ============================================================
+'''
+btc_data = YahooData.get_yahoo_closes("BTC-USD", 2000)
 
-np.random.seed(42)
+rounded = Kagi.get_steps_rounded_coordinates(btc_data, 500)
 
-x = np.linspace(0, 100, 500)
-y = np.sin(x / 5) * 10 + x * 0.5 + np.random.randn(500) * 2
-
-# ============================================================
-# PLOT SETUP
-# ============================================================
+kagi_data = Kagi.get_kagi_coordinates(rounded)
 
 fig, ax = plt.subplots(figsize=(12, 6))
 
-ax.plot(
-    x,
-    y,
-    label="Sample Data",
-    color="blue",
-    linewidth=2,
-)
+Kagi.plot_kagi_chart(ax, kagi_data)
+'''
 
-ax.set_title("TradingView-style Zoom with Crosshairs", fontsize=14)
-ax.set_xlabel("Bars")
-ax.set_ylabel("Price")
-ax.grid(True, alpha=0.3)
-ax.legend()
+fig, ax = Kagi.plot_simple ()
 
-# Move Y-axis to the right
-ax.yaxis.tick_right()
-ax.yaxis.set_label_position("right")
+# Kagi is time-independent → use index as X
+'''
+x = list(range(len(kagi_data)))
+y = [price for _, price in kagi_data]
+index = 0
+'''
+'''
+for item in y:
+    print (index, item)
+    index+=1
+'''
 
-# Store original limits
-original_xlim = (x[0], x[-1])
-original_ylim = (y.min() * 0.98, y.max() * 1.02)
-
-ax.set_xlim(original_xlim)
-ax.set_ylim(original_ylim)
 
 # ============================================================
 # CROSSHAIRS
